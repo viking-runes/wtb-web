@@ -30,8 +30,7 @@ const Wallet: React.FC = () => {
     if (storedSolanaAddress) {
       setSolanaAddress(storedSolanaAddress);
     }
-    console.log("===change", btcAccount);
-  }, [setBtcAddress, setSolanaAddress, btcAccount]);
+  }, [setBtcAddress, setSolanaAddress]);
 
   const handleProviderError = (provider: any, type: string) => {
     if (!provider) {
@@ -79,10 +78,9 @@ const Wallet: React.FC = () => {
       //   "Please sign this message to connect your wallet."
       // );
       // await btcProvider.signMessage(address, message);
-
       setBtcAddress(address);
       setBtcAccount(firstAccount);
-      console.log("====firstAccount", firstAccount, accounts);
+
       console.log("====btcAccount after set", btcAccount);
       localStorage.setItem("btcAddress", address);
     } catch (err) {
@@ -97,7 +95,7 @@ const Wallet: React.FC = () => {
       const resp = await solanaProvider.connect();
       const address = resp.publicKey.toString();
       // Request signature btcAccount
-      console.log("===btcAccount", btcAccount);
+
       if (btcAccount) {
         const jsonStr = JSON.stringify(btcAccount);
         const message = new TextEncoder().encode(jsonStr);
@@ -120,13 +118,15 @@ const Wallet: React.FC = () => {
   };
 
   const disconnectBtc = async () => {
-    setBtcAddress("");
     setBtcAccount({} as BtcAccount);
+    setBtcAddress("");
     localStorage.setItem("btcAddress", "");
     console.log("Disconnected from BTC wallet");
   };
 
   const disconnectSolana = async () => {
+    const solanaProvider = getSolanaProvider();
+    solanaProvider.disconnect();
     setSolanaAddress("");
     localStorage.setItem("solanaAddress", "");
     console.log("Disconnected from Solana wallet");
