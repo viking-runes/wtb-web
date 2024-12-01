@@ -6,7 +6,6 @@ import { Popover, Button, Text } from "@radix-ui/themes";
 import {
   btcAddressAtom,
   solanaAddressAtom,
-  btcAccountAtom,
   BtcAccount,
 } from "../stores/wallet";
 import { useAtom } from "jotai";
@@ -14,10 +13,12 @@ import userSvg from "/assets/img/user.svg";
 import btcSvg from "/assets/img/btc.svg";
 import solanaSvg from "/assets/img/solana.svg";
 import { toast } from "../hooks/use-toast";
+import services from "../service";
+import { Buffer } from "buffer";
 
 const Wallet: React.FC = () => {
   const [btcAddress, setBtcAddress] = useAtom(btcAddressAtom);
-  const [btcAccount, setBtcAccount] = useAtom(btcAccountAtom);
+  // const [btcAccount, setBtcAccount] = useAtom(btcAccountAtom);
   const [solanaAddress, setSolanaAddress] = useAtom(solanaAddressAtom);
 
   useEffect(() => {
@@ -71,39 +72,52 @@ const Wallet: React.FC = () => {
     if (handleProviderError(btcProvider, "BTC")) return;
     try {
       const accounts = await btcProvider.requestAccounts();
-      const address = accounts[0].address;
-      const firstAccount = accounts[0];
-      // Request signature
-      // const message = new TextEncoder().encode(
-      //   "Please sign this message to connect your wallet."
-      // );
-      // await btcProvider.signMessage(address, message);
-      setBtcAddress(address);
-      setBtcAccount(firstAccount);
-
-      console.log("====btcAccount after set", btcAccount);
-      localStorage.setItem("btcAddress", address);
+      if (accounts && accounts.length > 0) {
+        const address = accounts[0].address;
+        setBtcAddress(address);
+        // setBtcAccount(accounts);
+        localStorage.setItem("btcAddress", address);
+        return accounts;
+      } else {
+        toast({ description: "No accounts found" });
+      }
     } catch (err) {
       toast({ description: `Failed to connect BTC wallet:${err}` });
     }
   };
 
-  const connectSolana = async () => {
+  const getBind = async (
+    address: string,
+    signature: string,
+    btcAccount: BtcAccount[]
+  ) => {
+    const query = {
+      address: address,
+      sign: signature,
+      items: btcAccount,
+    };
+    try {
+      const data = await services.wtb.setBind(query);
+      console.log("=====bind data", data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const connectSolana = async (btcAccount: BtcAccount[]) => {
     const solanaProvider = getSolanaProvider();
     if (handleProviderError(solanaProvider, "Solana")) return;
     try {
       const resp = await solanaProvider.connect();
       const address = resp.publicKey.toString();
       // Request signature btcAccount
+      const jsonStr = JSON.stringify(btcAccount);
+      const message = new TextEncoder().encode(jsonStr);
+      const { signature } = await solanaProvider.signMessage(message, "utf8");
 
-      if (btcAccount) {
-        const jsonStr = JSON.stringify(btcAccount);
-        const message = new TextEncoder().encode(jsonStr);
-        const { signature } = await solanaProvider.signMessage(message, "utf8");
-        console.log("signature", signature);
-      } else {
-        toast({ description: `btcAccount is not available for signing` });
-      }
+      const sigStr = Buffer.from(signature).toString("hex");
+      getBind(address, sigStr, btcAccount);
+
       setSolanaAddress(address);
       localStorage.setItem("solanaAddress", address);
       // console.log(address);
@@ -113,12 +127,15 @@ const Wallet: React.FC = () => {
   };
 
   const connectPhantom = async () => {
-    await connectBtc();
-    await connectSolana();
+    try {
+      const btcAccount = await connectBtc();
+      await connectSolana(btcAccount);
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const disconnectBtc = async () => {
-    setBtcAccount({} as BtcAccount);
     setBtcAddress("");
     localStorage.setItem("btcAddress", "");
     console.log("Disconnected from BTC wallet");

@@ -36,7 +36,7 @@ export type BtcAccount = {
 const walletAtom = atomWithReset<WalletState>(initialState);
 export const btcAddressAtom = atom<string | null>(null);
 export const solanaAddressAtom = atom<string | null>(null);
-export const btcAccountAtom = atom<BtcAccount>();
+export const btcAccountAtom = atom<BtcAccount[]>();
 
 export function useWallet() {
   const [wallet, setWallet] = useAtom(walletAtom);
