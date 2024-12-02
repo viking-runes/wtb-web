@@ -34,7 +34,7 @@ jobs:
 
       - name: Build project
         run: |
-          pnpm install && pnpm build
+          npm config set strict-ssl false && pnpm install && pnpm build
 
       - run: cp dist/index.html dist/404.html
 
