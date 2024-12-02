@@ -12,7 +12,7 @@ const config = {
     { key: "ko", display: "한국어" },
   ],
   phantom: "https://phantom.app/",
-  wtbApiUrl: "http://45.76.159.111/wtb-api",
+  wtbApiUrl: "https://api.welcometobitcoin.io",
 };
 
 export default config;
