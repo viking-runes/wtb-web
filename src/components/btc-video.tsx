@@ -8,7 +8,7 @@ const BtcVideo = () => {
       muted
       loop={true}
     >
-      <source src="/assets/img/btcCoin.mp4" type="video/mp4" />
+      <source src="/assets/img/btcCoin2.mp4" type="video/mp4" />
       Your browser does not support the video tag.
     </video>
   );

@@ -33,14 +33,6 @@ const Wallet: React.FC = () => {
     }
   }, [setBtcAddress, setSolanaAddress]);
 
-  const handleProviderError = (provider: any, type: string) => {
-    if (!provider) {
-      toast({ description: `No ${type} provider found` });
-      return true;
-    }
-    return false;
-  };
-
   const getBtcProvider = () => {
     if ("phantom" in window) {
       const anyWindow: any = window;
@@ -69,20 +61,31 @@ const Wallet: React.FC = () => {
 
   const connectBtc = async () => {
     const btcProvider = getBtcProvider();
-    if (handleProviderError(btcProvider, "BTC")) return;
+    if (!btcProvider) {
+      toast({
+        description: "Please install Phantom wallet extension first",
+      });
+      window.open("https://phantom.app/", "_blank");
+      return;
+    }
+
     try {
       const accounts = await btcProvider.requestAccounts();
-      if (accounts && accounts.length > 0) {
-        const address = accounts[0].address;
-        setBtcAddress(address);
-        // setBtcAccount(accounts);
-        localStorage.setItem("btcAddress", address);
-        return accounts;
-      } else {
-        toast({ description: "No accounts found" });
+      if (!accounts || accounts.length === 0) {
+        toast({
+          description: "Please create a Bitcoin wallet in Phantom first",
+        });
+        return;
       }
+
+      const address = accounts[0].address;
+      setBtcAddress(address);
+      localStorage.setItem("btcAddress", address);
+      return accounts;
     } catch (err) {
-      toast({ description: `Failed to connect BTC wallet:${err}` });
+      toast({
+        description: `Failed to connect BTC wallet: ${err}`,
+      });
     }
   };
 
@@ -106,23 +109,37 @@ const Wallet: React.FC = () => {
 
   const connectSolana = async (btcAccount: BtcAccount[]) => {
     const solanaProvider = getSolanaProvider();
-    if (handleProviderError(solanaProvider, "Solana")) return;
+    if (!solanaProvider) {
+      toast({
+        description: "Please install Phantom wallet extension first",
+      });
+      window.open("https://phantom.app/", "_blank");
+      return;
+    }
+
     try {
       const resp = await solanaProvider.connect();
+      if (!resp.publicKey) {
+        toast({
+          description: "Please create a Solana wallet in Phantom first",
+        });
+        return;
+      }
+
       const address = resp.publicKey.toString();
-      // Request signature btcAccount
       const jsonStr = JSON.stringify(btcAccount);
       const message = new TextEncoder().encode(jsonStr);
       const { signature } = await solanaProvider.signMessage(message, "utf8");
 
       const sigStr = Buffer.from(signature).toString("hex");
-      getBind(address, sigStr, btcAccount);
+      await getBind(address, sigStr, btcAccount);
 
       setSolanaAddress(address);
       localStorage.setItem("solanaAddress", address);
-      // console.log(address);
     } catch (err) {
-      toast({ description: `Failed to connect Solana wallet:${err}` });
+      toast({
+        description: `Failed to connect Solana wallet: ${err}`,
+      });
     }
   };
 
