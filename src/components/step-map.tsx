@@ -118,6 +118,12 @@ function DesktopMap() {
             {t("step5")}
           </Text>
         </div>
+        <div className="flex justify-center items-center col-start-1 col-end-3 px-12 mb-12 text-sm text-center">
+          <Text>
+            Please use the phantom link first, we will only get your bitcoin
+            multichain address.
+          </Text>
+        </div>
       </div>
     </div>
   );
@@ -210,6 +216,12 @@ function MobileMap() {
           </div>
           <Text className="text-sm translation-text  text-center">
             {t("step5")}
+          </Text>
+        </div>
+        <div className="flex justify-center items-center px-4 text-sm text-center">
+          <Text>
+            Please use the phantom link first, we will only get your bitcoin
+            multichain address.
           </Text>
         </div>
       </div>
