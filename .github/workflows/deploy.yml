@@ -1,0 +1,54 @@
+name: Deploy Test
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    name: Build
+    environment:
+      name: github-pages-test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        name: Install pnpm
+        with:
+          version: 8
+          run_install: false
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Build project
+        run: |
+          npm config set strict-ssl false && pnpm install && pnpm build
+
+      - run: cp dist/index.html dist/404.html
+
+      - run: cp CNAME_prod dist/CNAME
+
+      - name: Pushes to another repository
+        id: push_directory
+        uses: cpina/github-action-push-to-another-repository@main
+        env:
+          SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY }}
+        with:
+          source-directory: dist/
+          destination-github-username: 'viking-runes'
+          destination-repository-name: 'welcometobitcoin.io'
+          user-email: viking.astross@gmail.com
+          commit-message: See ORIGIN_COMMIT from $GITHUB_REF
+          target-branch: main
