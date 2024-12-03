@@ -73,7 +73,7 @@ const App: React.FC = () => {
       {/* map */}
       <StepMap />
       {/* table */}
-      <Section className="container max-w-screen-xl">
+      <Section className="container max-w-screen-xl pt-0">
         <div className="flex items-center gap-5 text-3xl">
           <Text className="text-shadow text-yellow">$WTB Holders</Text>
           <Text className="text-shadow ">{formatNumber(total)}</Text>
