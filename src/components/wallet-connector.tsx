@@ -62,7 +62,6 @@ const WalletConnector: React.FC = () => {
       const address = accounts[0].address;
       setBtcAddress(address);
       localStorage.setItem("btcAddress", address);
-      console.log(accounts);
     } catch (err) {
       console.error("Failed to connect BTC wallet:", err);
     }
@@ -76,7 +75,6 @@ const WalletConnector: React.FC = () => {
       const address = resp.publicKey.toString();
       setSolanaAddress(address);
       localStorage.setItem("solanaAddress", address);
-      console.log(address);
     } catch (err) {
       console.error("Failed to connect Solana wallet:", err);
     }

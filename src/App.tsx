@@ -4,30 +4,39 @@ import { useTranslation } from "react-i18next";
 import btcRight from "/assets/img/btcRight.png";
 import { Section, Table, Text } from "@radix-ui/themes";
 import StepMap from "./components/step-map";
-import services from "./service";
 import { useEffect, useState } from "react";
-import { IHolderItem } from "./types/holder";
+
 import { formatAddress, formatNumber, formatSolana } from "./utils";
 import InfiniteScroll from "react-infinite-scroll-component";
+import { useWallet } from "./stores/wallet";
+import { useHolders } from "./stores/holders";
 
 const App: React.FC = () => {
   const { t } = useTranslation();
-  const [items, setItems] = useState<IHolderItem[]>([]);
-  const [total, setTotal] = useState<number>(0);
   const [hasMore, setHasMore] = useState<boolean>(true);
-  const [page, setPage] = useState<number>(1);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const { solanaAddress } = useWallet();
+  const storedSolanaAddress = localStorage.getItem("solanaAddress") || "";
+  const {
+    holderItems: items,
+    holderTotal: total,
+    page,
+    setPage,
+    setHolderItems,
+    setHolderTotal,
+    getHolders,
+  } = useHolders();
 
   const loadMoreItems = async () => {
     if (isLoading || !hasMore) return;
 
     setIsLoading(true);
     try {
-      const data = await services.wtb.getHolders(page);
+      const data = await getHolders(page, solanaAddress || storedSolanaAddress);
       const newItems = data.data.holders.items;
       const total = data.data.holders.total;
-      setItems((prev) => [...prev, ...newItems]);
-      setTotal(total);
+      setHolderItems((prev) => [...prev, ...newItems]);
+      setHolderTotal(total);
       setHasMore(total > items.length);
       setPage((prev) => prev + 1);
     } catch (error) {
@@ -104,25 +113,47 @@ const App: React.FC = () => {
               {items.map((row) => (
                 <Table.Row align="center" key={row.index}>
                   <Table.Cell justify="center" className="rt-common-cell">
-                    <div className="p-6 bg-lightGrey">{row.index}</div>
+                    <div
+                      className={`p-6 bg-lightGrey ${
+                        row.is_top ? "text-amber-500/[.5]" : "text-grey"
+                      }`}
+                    >
+                      {row.index}
+                    </div>
                   </Table.Cell>
                   <Table.Cell justify="center" className="rt-common-cell">
-                    <div className="p-6 bg-lightGrey text-nowrap">
+                    <div
+                      className={`p-6 text-nowrap bg-lightGrey ${
+                        row.is_top ? "text-amber-500/[.5]" : "text-grey"
+                      }`}
+                    >
                       {formatAddress(row.sol_address)}
                     </div>
                   </Table.Cell>
                   <Table.Cell justify="center" className="rt-common-cell">
-                    <div className="p-6 bg-lightGrey">
+                    <div
+                      className={`p-6 bg-lightGrey ${
+                        row.is_top ? "text-amber-500/[.5]" : "text-grey"
+                      }`}
+                    >
                       {formatSolana(row.sol_balance, row.sol_decimals)}
                     </div>
                   </Table.Cell>
                   <Table.Cell justify="center" className="rt-common-cell">
-                    <div className="p-6 bg-lightGrey text-nowrap">
+                    <div
+                      className={`p-6 text-nowrap bg-lightGrey ${
+                        row.is_top ? "text-amber-500/[.5]" : "text-grey"
+                      }`}
+                    >
                       {formatAddress(row.btc_taproot_address)}
                     </div>
                   </Table.Cell>
                   <Table.Cell justify="center" className="rt-common-cell">
-                    <div className="p-6 bg-lightGrey text-nowrap">
+                    <div
+                      className={`p-6 text-nowrap bg-lightGrey ${
+                        row.is_top ? "text-amber-500/[.5]" : "text-grey"
+                      }`}
+                    >
                       {formatAddress(row.btc_nested_segwit_address)}
                     </div>
                   </Table.Cell>

@@ -3,35 +3,31 @@ import React, { useEffect } from "react";
 import phantom from "/assets/img/phantom.svg";
 import { formatAddress } from "../utils";
 import { Popover, Button, Text } from "@radix-ui/themes";
-import {
-  btcAddressAtom,
-  solanaAddressAtom,
-  BtcAccount,
-} from "../stores/wallet";
-import { useAtom } from "jotai";
+import { BtcAccount, useWallet } from "../stores/wallet";
 import userSvg from "/assets/img/user.svg";
 import btcSvg from "/assets/img/btc.svg";
 import solanaSvg from "/assets/img/solana.svg";
 import { toast } from "../hooks/use-toast";
 import services from "../service";
 import { Buffer } from "buffer";
+import { useHolders } from "../stores/holders";
 
 const Wallet: React.FC = () => {
-  const [btcAddress, setBtcAddress] = useAtom(btcAddressAtom);
-  // const [btcAccount, setBtcAccount] = useAtom(btcAccountAtom);
-  const [solanaAddress, setSolanaAddress] = useAtom(solanaAddressAtom);
+  const { btcAddress, setBtcAddress, solanaAddress, setSolanaAddress } =
+    useWallet();
+  const { resetHolders } = useHolders();
 
   useEffect(() => {
     const storedBtcAddress = localStorage.getItem("btcAddress");
-    const storedSolanaAddress = localStorage.getItem("solanaAddress");
-
-    if (storedBtcAddress) {
+    if (storedBtcAddress && storedBtcAddress !== btcAddress) {
       setBtcAddress(storedBtcAddress);
     }
-    if (storedSolanaAddress) {
+
+    const storedSolanaAddress = localStorage.getItem("solanaAddress");
+    if (storedSolanaAddress && storedSolanaAddress !== solanaAddress) {
       setSolanaAddress(storedSolanaAddress);
     }
-  }, [setBtcAddress, setSolanaAddress]);
+  }, [btcAddress, solanaAddress, setBtcAddress, setSolanaAddress]);
 
   const getBtcProvider = () => {
     if ("phantom" in window) {
@@ -134,8 +130,9 @@ const Wallet: React.FC = () => {
       const sigStr = Buffer.from(signature).toString("hex");
       await getBind(address, sigStr, btcAccount);
 
-      setSolanaAddress(address);
       localStorage.setItem("solanaAddress", address);
+      setSolanaAddress(address);
+      resetHolders();
     } catch (err) {
       toast({
         description: `Failed to connect Solana wallet: ${err}`,
@@ -169,6 +166,7 @@ const Wallet: React.FC = () => {
   const disconnectPhantom = async () => {
     await disconnectBtc();
     await disconnectSolana();
+    resetHolders();
   };
 
   return (

@@ -13,6 +13,7 @@ export interface IHolders {
 
 export interface IHolderItem {
   index: number;
+  is_top: boolean;
   sol_address: string;
   sol_balance: string;
   sol_decimals: number;
