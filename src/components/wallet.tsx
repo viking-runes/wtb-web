@@ -9,7 +9,7 @@ import btcSvg from "/assets/img/btc.svg";
 import solanaSvg from "/assets/img/solana.svg";
 import step1 from "/assets/img/step1.png";
 import step2 from "/assets/img/step2.png";
-import step3 from "/assets/img/step3.png";
+import step3 from "/assets/img/step3_1.png";
 import { toast } from "../hooks/use-toast";
 import services from "../service";
 import { Buffer } from "buffer";
